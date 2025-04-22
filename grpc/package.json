@@ -1,0 +1,16 @@
+{
+  "name": "grpc-chat",
+  "version": "1.0.0",
+  "scripts": {
+    "server": "ts-node server.ts",
+    "client": "ts-node client.ts"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.7.3",
+    "@grpc/proto-loader": "^0.7.6"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.0"
+  }
+}
