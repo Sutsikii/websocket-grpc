@@ -1,8 +1,8 @@
 import { io } from "socket.io-client";
 
-const SERVER_URL = "http://localhost:3001";
+const SERVER_URL = "http://websocket-server:3002";
 const TOTAL_CLIENTS = 1000;
-const MESSAGES_PER_CLIENT = 10000;
+const MESSAGES_PER_CLIENT = 100;
 
 let totalMessages = 0;
 let failedMessages = 0;

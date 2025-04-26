@@ -6,24 +6,43 @@ const PROTO_PATH = path.resolve(__dirname, './proto/chat.proto');
 const packageDefinition = protoLoader.loadSync(PROTO_PATH);
 const proto = grpc.loadPackageDefinition(packageDefinition) as any;
 
-const CLIENT_COUNT = 1000;
-const MESSAGES_PER_CLIENT = 10000;
+const TOTAL_CLIENTS = 1000;
+const MESSAGES_PER_CLIENT = 100;
 
-const start = Date.now();
 let totalMessages = 0;
+let failedMessages = 0;
+let latencies: number[] = [];
 
 function runClient(id: number) {
   return new Promise<void>((resolve) => {
-    const client = new proto.chat.ChatService('localhost:50051', grpc.credentials.createInsecure());
+    const client = new proto.chat.ChatService('grpc-server:50051', grpc.credentials.createInsecure());
     let sent = 0;
 
     function sendNext() {
-      if (sent >= MESSAGES_PER_CLIENT) return resolve();
-      const content = `client-${id}-msg-${sent}`;
-      client.SendMessage({ username: `client-${id}`, content }, (err: any, response: any) => {
-        if (err) console.error(err);
+      if (sent >= MESSAGES_PER_CLIENT) {
+        return resolve();
+      }
+
+      const start = performance.now();
+      const content = `client-${id}-message-${sent}`;
+
+      const timeout = setTimeout(() => {
+        failedMessages++;
         sent++;
-        totalMessages++;
+        sendNext();
+      }, 2000);
+
+      client.SendMessage({ content }, (err: any, response: any) => {
+        clearTimeout(timeout);
+        if (err) {
+          console.error(err);
+          failedMessages++;
+        } else {
+          const latency = performance.now() - start;
+          latencies.push(latency);
+          totalMessages++;
+        }
+        sent++;
         sendNext();
       });
     }
@@ -33,18 +52,26 @@ function runClient(id: number) {
 }
 
 async function main() {
+  console.log(`Starting load test with ${TOTAL_CLIENTS} clients...`);
+  const startTime = performance.now();
+
   const clients = [];
-  for (let i = 0; i < CLIENT_COUNT; i++) {
+  for (let i = 0; i < TOTAL_CLIENTS; i++) {
     clients.push(runClient(i));
   }
+
   await Promise.all(clients);
-  const duration = (Date.now() - start) / 1000;
-  console.log(`\n=== gRPC Load Test ===`);
-  console.log(`Clients: ${CLIENT_COUNT}`);
-  console.log(`Messages/client: ${MESSAGES_PER_CLIENT}`);
-  console.log(`Total messages: ${totalMessages}`);
-  console.log(`Duration: ${duration.toFixed(2)}s`);
-  console.log(`Avg msg/sec: ${(totalMessages / duration).toFixed(2)}`);
+
+  const totalTime = (performance.now() - startTime) / 1000;
+  const avgLatency = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+
+  console.log(`\n=== Load Test Report ===`);
+  console.log(`Total clients: ${TOTAL_CLIENTS}`);
+  console.log(`Messages per client: ${MESSAGES_PER_CLIENT}`);
+  console.log(`Total messages sent: ${totalMessages}`);
+  console.log(`Failed messages: ${failedMessages}`);
+  console.log(`Average latency: ${avgLatency.toFixed(2)} ms`);
+  console.log(`Total time: ${totalTime.toFixed(2)} sec`);
 }
 
 main();

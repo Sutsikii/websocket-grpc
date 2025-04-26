@@ -7,8 +7,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH);
 const proto = grpc.loadPackageDefinition(packageDefinition) as any;
 
 function sendMessage(call: any, callback: any) {
-  console.log(`[${call.request.username}] ${call.request.content}`);
-  callback(null, { status: 'received' });
+  callback(null, { content: call.request.content });
 }
 
 function main() {

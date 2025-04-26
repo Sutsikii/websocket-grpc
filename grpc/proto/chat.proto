@@ -3,14 +3,9 @@ syntax = "proto3";
 package chat;
 
 service ChatService {
-  rpc SendMessage (Message) returns (Ack);
+  rpc SendMessage (Message) returns (Message);
 }
 
 message Message {
-  string username = 1;
-  string content = 2;
-}
-
-message Ack {
-  string status = 1;
+  string content = 1;
 }

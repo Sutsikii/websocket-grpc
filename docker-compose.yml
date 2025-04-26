@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  websocket-server:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./websocket:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run server
+
+  websocket-client:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    volumes:
+      - ./websocket:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run client
+    depends_on:
+      - websocket-server
+
+  grpc-server:
+    build:
+      context: ./grpc
+      dockerfile: Dockerfile
+    ports:
+      - "50051"
+    volumes:
+      - ./grpc:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run server
+
+  grpc-client:
+    build:
+      context: ./grpc
+      dockerfile: Dockerfile
+    volumes:
+      - ./grpc:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run client
+    depends_on:
+      - grpc-server 

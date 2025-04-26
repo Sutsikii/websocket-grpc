@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "server": "node --loader ts-node/esm server.ts",
-    "load-test": "node --loader ts-node/esm load-test.ts"
+    "client": "node --loader ts-node/esm client.ts"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.6",
